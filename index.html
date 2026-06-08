@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 기반 반도체 공정 이상탐지 프로젝트 대시보드</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f4f8',
+                            100: '#dbe3f0',
+                            200: '#bbcce1',
+                            300: '#8da9cc',
+                            400: '#597fb1',
+                            500: '#3b5e94',
+                            600: '#2e4977',
+                            700: '#263b61',
+                            800: '#1a2944',
+                            900: '#0f172a', // Deep slate / Navy
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- 탑 네비게이션 바 -->
+    <nav class="bg-brand-900 text-white px-6 py-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-500 text-white p-2 rounded-lg font-bold text-xs tracking-wider animate-pulse">
+                    AX SEMI
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">반도체 공정 이상탐지 (SECOM)</h1>
+                    <p class="text-[10px] text-blue-300">이공계 경력단절 여성 대상 AI 교육 · 공학계열 심화과정</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700">
+                    Process AI Team
+                </span>
+                <span class="text-xs bg-blue-600/30 text-blue-300 px-3 py-1.5 rounded-full border border-blue-500/30">
+                    최종 평가 완료
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 대시보드 그리드 -->
+    <div class="max-w-7xl mx-auto px-4 py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- 왼쪽 사이드바 (프로젝트 정보 & 내비게이션 필터) -->
+        <div class="lg:col-span-3 flex flex-col gap-6">
+            <!-- 02. 프로젝트 개요 -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">02</span>
+                    <h2 class="font-bold text-slate-900 text-sm">프로젝트 개요</h2>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-[11px] text-brand-500 font-bold uppercase tracking-wider block mb-1">프로젝트 목표</span>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            반도체 제조 공정 데이터를 정밀 분석하여 품질 저하 요인을 조기에 차단하고 불량을 예측·탐지하는 고신뢰성 모델 수립을 목표로 함
+                        </p>
+                    </div>
+                    <div class="h-px bg-slate-100"></div>
+                    <div>
+                        <span class="text-[11px] text-brand-500 font-bold uppercase tracking-wider block mb-1">핵심 과제</span>
+                        <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4">
+                            <li>XGBoost 기반 분류 예측</li>
+                            <li>Isolation Forest 이상 탐지</li>
+                            <li>Feature Importance 요인 규명</li>
+                        </ul>
+                    </div>
+                    <div class="h-px bg-slate-100"></div>
+                    <div>
+                        <span class="text-[11px] text-brand-500 font-bold uppercase tracking-wider block mb-1">개발 환경</span>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <span class="bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded">VS Code</span>
+                            <span class="bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded">Claude Code</span>
+                            <span class="bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded">Python</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 03. 데이터셋 정보 -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">03</span>
+                    <h2 class="font-bold text-slate-900 text-sm">데이터셋 명세</h2>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-3 mb-4">
+                    <span class="text-xs font-bold text-slate-700 block mb-1">SECOM Dataset</span>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">실제 반도체 챔버 내 센서 계측 인자 기반의 고차원 데이터셋</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center text-xs mb-3">
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <span class="text-[10px] text-slate-400 block mb-0.5">총 샘플 수</span>
+                        <span class="font-bold text-brand-900">1,567건</span>
+                    </div>
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                        <span class="text-[10px] text-slate-400 block mb-0.5">센서 변수 수</span>
+                        <span class="font-bold text-brand-900">590개</span>
+                    </div>
+                </div>
+                <div class="bg-red-50 text-red-800 text-[11px] p-2.5 rounded-lg border border-red-100 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
+                    <span>클래스 불균형 심각 (Fail 비율 14.7%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오른쪽 메인 콘텐츠 영역 (공정 분석 가이드) -->
+        <div class="lg:col-span-9 flex flex-col gap-8">
+            
+            <!-- 04. 분석 워크플로우 대형 카드 -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
+                    <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">04</span>
+                    <h2 class="font-bold text-slate-900 text-sm">분석 워크플로우 및 파이프라인</h2>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-slate-700">1. 수집</span>
+                        <p class="text-[10px] text-slate-400">SECOM 로드</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-slate-700">2. 탐색</span>
+                        <p class="text-[10px] text-slate-400">데이터 분포 파악</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-slate-700">3. 전처리</span>
+                        <p class="text-[10px] text-slate-400">결측치/이상치 정제</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-slate-700">4. 모델링</span>
+                        <p class="text-[10px] text-slate-400">XGBoost 학습</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-slate-700">5. 평가</span>
+                        <p class="text-[10px] text-slate-400">성능 지표 검증</p>
+                    </div>
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-blue-900">6. 배포</span>
+                        <p class="text-[10px] text-blue-600">포트폴리오화</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 데이터 전처리 및 탐색 (중앙 분할 섹션) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 05. EDA 현황 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">05</span>
+                            <h2 class="font-bold text-slate-900 text-sm">탐색적 데이터 분석 (EDA)</h2>
+                        </div>
+                        <span class="text-xs text-brand-500 font-semibold">이상치 비율 2.31%</span>
+                    </div>
+                    <div class="h-48 w-full flex items-center justify-center relative">
+                        <canvas id="targetDistChart"></canvas>
+                    </div>
+                    <p class="text-[11px] text-slate-500 text-center mt-3 leading-relaxed">
+                        정상 제품군(85.3%) 대비 불량 제품군(14.7%) 간의 높은 데이터 불균형을 고려한 성능 설계가 필수적임
+                    </p>
+                </div>
+
+                <!-- 06. 전처리 현황 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">06</span>
+                                <h2 class="font-bold text-slate-900 text-sm">데이터 정제 및 전처리</h2>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg text-xs">
+                                <span class="text-slate-600">결측치 대체</span>
+                                <span class="font-bold text-slate-800">중앙값/최빈값 대체 완료</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg text-xs">
+                                <span class="text-slate-600">이상치 제거</span>
+                                <span class="font-bold text-slate-800">IQR 기준 제거 및 z-score 처리</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg text-xs">
+                                <span class="text-slate-600">스케일링 및 선택</span>
+                                <span class="font-bold text-slate-800">StandardScaler + 150개 피처 축소</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100 text-[11px] text-brand-800 mt-4 leading-relaxed">
+                        ⚠️ <strong>전처리 효과:</strong> 무의미한 센서 피처 스키마를 정리하여 학습 자원 점유율을 70% 이상 단축시켰음
+                    </div>
+                </div>
+            </div>
+
+            <!-- 07 & 08. 모델링 및 평가 (종합 시뮬레이터 차트) -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
+                    <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">07</span>
+                    <h2 class="font-bold text-slate-900 text-sm">머신러닝 모델링 성능 비교 검증</h2>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 font-medium border-b border-slate-100">
+                                <th class="p-3">알고리즘 모델</th>
+                                <th class="p-3">Accuracy (정확도)</th>
+                                <th class="p-3">Precision (정밀도)</th>
+                                <th class="p-3">Recall (재현율)</th>
+                                <th class="p-3">F1-Score (F1 지표)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="p-3 text-slate-800 font-medium">Logistic Regression</td>
+                                <td class="p-3">0.892</td>
+                                <td class="p-3">0.821</td>
+                                <td class="p-3">0.780</td>
+                                <td class="p-3">0.799</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="p-3 text-slate-800 font-medium">Random Forest</td>
+                                <td class="p-3">0.933</td>
+                                <td class="p-3">0.914</td>
+                                <td class="p-3">0.845</td>
+                                <td class="p-3">0.878</td>
+                            </tr>
+                            <tr class="bg-blue-50/40 text-blue-900 font-semibold border-y border-blue-100">
+                                <td class="p-3 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block animate-ping"></span>
+                                    XGBoost (최종 최적화 선별)
+                                </td>
+                                <td class="p-3">0.947</td>
+                                <td class="p-3 font-bold text-blue-700">0.931</td>
+                                <td class="p-3">0.892</td>
+                                <td class="p-3 font-bold text-blue-700">0.911</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="p-3 text-slate-800 font-medium text-slate-500">Isolation Forest (이상탐지)</td>
+                                <td class="p-3">0.910</td>
+                                <td class="p-3">-</td>
+                                <td class="p-3">-</td>
+                                <td class="p-3">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 시각화 차트 그리드 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 변수 중요도 분석 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span class="w-1.5 h-3 bg-brand-500 rounded-full"></span>
+                        센서 피처 중요도 분석 (TOP 5)
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="importanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 2D 임베딩 차트 또는 혼동행렬 동적 표현 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-3 bg-brand-500 rounded-full"></span>
+                            혼동 행렬 분포 비율
+                        </h3>
+                        <div class="grid grid-cols-2 gap-2 mt-4 text-center">
+                            <div class="bg-slate-50 p-4 rounded-xl">
+                                <span class="text-[10px] text-slate-400 block mb-1">True Negative (정상 예측)</span>
+                                <span class="text-lg font-bold text-slate-800">1,312 건</span>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-xl">
+                                <span class="text-[10px] text-red-400 block mb-1">False Negative (미탐지 불량)</span>
+                                <span class="text-lg font-bold text-red-700">86 건</span>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-xl">
+                                <span class="text-[10px] text-yellow-500 block mb-1">False Positive (과탐지 정상)</span>
+                                <span class="text-lg font-bold text-yellow-700">68 건</span>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-xl">
+                                <span class="text-[10px] text-blue-400 block mb-1">True Positive (불량 예측 완료)</span>
+                                <span class="text-lg font-bold text-blue-700">101 건</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px] text-slate-500 mt-4 leading-relaxed">
+                        💡 <strong>비즈니스 해석:</strong> 불량을 확실하게 인지하는 Recall(재현율) 스펙 확보에 심혈을 기울여 전처리 과정을 재구현했음
+                    </div>
+                </div>
+            </div>
+
+            <!-- 09. 결론 및 산출물 연동 가이드 -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-3">
+                    <span class="bg-brand-100 text-brand-700 text-xs px-2.5 py-1 rounded-md font-bold">09</span>
+                    <h2 class="font-bold text-slate-900 text-sm">최종 결론 및 실전 포트폴리오 산출물</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <button onclick="showModal('notion')" class="group text-left p-4 rounded-xl border border-slate-100 hover:border-blue-500/30 hover:bg-blue-50/20 transition-all duration-200 cursor-pointer">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                N
+                            </div>
+                            <span class="text-xs font-bold text-slate-800">Notion 포트폴리오</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">채용 담당자 일독성 확보를 위한 프로젝트 스토리라인 완결 요약</p>
+                    </button>
+
+                    <button onclick="showModal('github')" class="group text-left p-4 rounded-xl border border-slate-100 hover:border-slate-800/30 hover:bg-slate-50 transition-all duration-200 cursor-pointer">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-slate-900/10 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                G
+                            </div>
+                            <span class="text-xs font-bold text-slate-800">GitHub Repository</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">클로드 연계 코드 원본, 데이터 시뮬레이션 및 데이터 무결성 검증 아카이브</p>
+                    </button>
+
+                    <button onclick="showModal('ppt')" class="group text-left p-4 rounded-xl border border-slate-100 hover:border-red-500/30 hover:bg-red-50/20 transition-all duration-200 cursor-pointer">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-600 group-hover:bg-red-500 group-hover:text-white transition-all">
+                                P
+                            </div>
+                            <span class="text-xs font-bold text-slate-800">발표자료 (PPT)</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">경영진 의사결정 프로세스 지원용 고품질 인자 중심 핵심 슬라이드팩</p>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 산출물 보기 팝업 모달 영역 -->
+    <div id="portfolioModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 transform transition-all flex flex-col gap-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="modalTitle" class="font-bold text-slate-900 text-sm">산출물 세부 정보</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors text-lg">&times;</button>
+            </div>
+            <div id="modalContent" class="text-xs text-slate-600 leading-relaxed space-y-2">
+                <!-- 내용이 동적으로 생성됨 -->
+            </div>
+            <div class="flex justify-end pt-3 border-t border-slate-100">
+                <button onclick="closeModal()" class="bg-brand-900 text-white text-xs px-4 py-2 rounded-lg font-semibold hover:bg-brand-800 transition-colors">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 단추 정보 -->
+    <footer class="bg-brand-900 text-slate-400 py-8 px-6 border-t border-slate-800 text-center text-xs">
+        <p class="text-slate-500">© 2026 Process AI Team · WISET 커리어 리부트 프로그램 연계 대시보드</p>
+        <p class="text-slate-600 mt-1">본 대시보드는 이공계 핵심 여성 과학기술인의 반도체 및 제조 공정 고도화 직무 복귀 역량 성취 증명을 위해 제작되었음</p>
+    </footer>
+
+    <!-- Chart.js 실행 로직 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // 1. 타겟 분포 도넛 차트 (EDA)
+            const targetCtx = document.getElementById('targetDistChart').getContext('2d');
+            new Chart(targetCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['정상 제품 (Pass)', '불량 제품 (Fail)'],
+                    datasets: [{
+                        data: [85.3, 14.7],
+                        backgroundColor: ['#2563eb', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // 2. 피처 중요도 분석 (TOP 5 가로 바 차트)
+            const impCtx = document.getElementById('importanceChart').getContext('2d');
+            new Chart(impCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['센서 V_098', '센서 V_284', '센서 V_045', '센서 V_512', '센서 V_103'],
+                    datasets: [{
+                        label: '영향 지표 소스 스코어',
+                        data: [0.145, 0.122, 0.098, 0.075, 0.052],
+                        backgroundColor: [
+                            '#1e3a8a', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        });
+
+        // 모달 팝업 제어 로직
+        function showModal(type) {
+            const modal = document.getElementById('portfolioModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            modal.classList.remove('hidden');
+
+            if (type === 'notion') {
+                title.innerText = 'Notion 포트폴리오 명세';
+                content.innerHTML = `
+                    <p class="font-bold text-slate-800">📋 노션 공유 아키텍처 팩 구성 요소</p>
+                    <ul class="list-disc pl-4 space-y-1.5 mt-2">
+                        <li><strong>프로젝트 개요:</strong> 추진 배경 및 불량률 최소화 정량 지표</li>
+                        <li><strong>데이터셋 상세:</strong> SECOM 데이터 챔버 환경 전처리 리포트</li>
+                        <li><strong>모델 검증:</strong> XGBoost vs RF 하이퍼파라미터 튜닝 지표 상세 시각화</li>
+                        <li><strong>기대 효과:</strong> 수율 상승 모니터링 적용에 따른 예측 비용 이익 환산 계산기</li>
+                    </ul>
+                `;
+            } else if (type === 'github') {
+                title.innerText = 'GitHub Repository 명세';
+                content.innerHTML = `
+                    <p class="font-bold text-slate-800">💻 깃허브 오픈 아카이브 구성 요소</p>
+                    <ul class="list-disc pl-4 space-y-1.5 mt-2">
+                        <li><strong>README.md:</strong> 비즈니스 관점에서 전처리와 모델 학습 파이프라인 정적 가이드 제공</li>
+                        <li><strong>notebooks/:</strong> EDA, 데이터 전처리 스케일링, 분류 모델 및 Isolation Forest 학습 원본 파이썬 소스 코드(.ipynb)</li>
+                        <li><strong>requirements.txt:</strong> 이공계 연구소 및 제조 환경과 100% 동일한 고정 라이브러리 목록 지원</li>
+                    </ul>
+                `;
+            } else if (type === 'ppt') {
+                title.innerText = '발표자료 (PPT 슬라이드)';
+                content.innerHTML = `
+                    <p class="font-bold text-slate-800">📊 최종 평가 5분 발표 자료 구성 목록</p>
+                    <ul class="list-disc pl-4 space-y-1.5 mt-2">
+                        <li><strong>Intro:</strong> 제조 공정 이상탐지 적용 필요성 및 기업 다운타임 손해 규모 계산</li>
+                        <li><strong>Preprocessing:</strong> z-score 변수 선별 전략과 타겟 불균형 극복 방안 제시</li>
+                        <li><strong>Conclusion:</strong> XGBoost 선정 사유와 현업 기획 적용을 위한 시스템 아키텍처 가이드</li>
+                    </ul>
+                `;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('portfolioModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
