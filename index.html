@@ -23,7 +23,7 @@
                             600: '#2e4977',
                             700: '#263b61',
                             800: '#1a2944',
-                            900: '#0f172a', // Deep slate
+                            900: '#0f172a',
                         },
                     }
                 }
@@ -40,11 +40,19 @@
             height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #0f172a;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #334155;
             border-radius: 4px;
+        }
+        .animate-alert {
+            animation: redPulse 1.5s infinite;
+        }
+        @keyframes redPulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
     </style>
 </head>
@@ -59,7 +67,7 @@
                 </div>
                 <div>
                     <h1 class="text-base font-bold tracking-tight flex items-center gap-2">
-                        FAB 3라인 챔버 설비 이상 진단 시스템 <span class="text-blue-400 text-xs">v2.4</span>
+                        FAB 3라인 챔버 설비 이상 진단 시스템
                     </h1>
                     <p class="text-[10px] text-slate-400">데이터 기반 실시간 수율 감지 및 공정 변수(SECOM) 패턴 매핑</p>
                 </div>
@@ -67,9 +75,9 @@
             <div class="flex items-center gap-3">
                 <div class="text-right hidden md:block">
                     <p class="text-[10px] text-slate-400">최종 분석 갱신 시간</p>
-                    <p class="text-xs font-mono text-slate-200">2026-06-08 12:25:40</p>
+                    <p id="live-time" class="text-xs font-mono text-slate-200">2026-06-08 12:48:00</p>
                 </div>
-                <span class="text-xs bg-slate-800 text-blue-400 px-3 py-1.5 rounded border border-slate-700 font-mono">
+                <span id="system-status-badge" class="text-xs bg-emerald-950/80 text-emerald-400 px-3 py-1.5 rounded border border-emerald-800/80 font-mono">
                     System: Secure/Normal
                 </span>
             </div>
@@ -85,11 +93,11 @@
             </div>
             <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
                 <span class="text-[10px] text-slate-500 block">실시간 실측 수율 (Yield)</span>
-                <span class="text-sm font-mono font-bold text-emerald-400">85.3%</span>
+                <span id="kpi-yield" class="text-sm font-mono font-bold text-emerald-400">85.3%</span>
             </div>
             <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
                 <span class="text-[10px] text-slate-500 block">설비 이상 알람 빈도</span>
-                <span class="text-sm font-mono font-bold text-red-400">14.7% (Fail 감지)</span>
+                <span id="kpi-fail-rate" class="text-sm font-mono font-bold text-red-400">14.7% (Fail 감지)</span>
             </div>
             <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
                 <span class="text-[10px] text-slate-500 block">연동 활성 센서 라인</span>
@@ -101,12 +109,11 @@
     <!-- 메인 대시보드 영역 -->
     <main class="max-w-7xl mx-auto px-4 py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- 왼쪽 열: 02, 03 기준 필수 정보 영역 -->
+        <!-- 왼쪽 열: 프로젝트 정보 및 실시간 시뮬레이션 인터렉션 제어반 -->
         <div class="lg:col-span-3 flex flex-col gap-6">
-            <!-- 02. 프로젝트 개요 -->
+            <!-- 프로젝트 개요 -->
             <div class="bg-slate-900 rounded-xl p-5 border border-slate-800 shadow-sm">
                 <div class="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-                    <span class="bg-slate-800 text-blue-400 text-xs px-2 py-0.5 rounded font-mono">02</span>
                     <h2 class="font-bold text-slate-200 text-xs">프로젝트 정의</h2>
                 </div>
                 <div class="space-y-4 text-xs">
@@ -126,54 +133,76 @@
                 </div>
             </div>
 
-            <!-- 03. 데이터셋 명세 -->
+            <!-- 시뮬레이션 인터랙션 제어 패널 -->
             <div class="bg-slate-900 rounded-xl p-5 border border-slate-800 shadow-sm">
                 <div class="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-                    <span class="bg-slate-800 text-blue-400 text-xs px-2 py-0.5 rounded font-mono">03</span>
-                    <h2 class="font-bold text-slate-200 text-xs">데이터셋 사양</h2>
+                    <h2 class="font-bold text-slate-200 text-xs text-blue-400">실시간 데이터 시뮬레이터</h2>
                 </div>
-                <div class="space-y-3 text-xs">
-                    <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
-                        <span class="text-slate-400 block font-bold mb-1 text-[11px]">UCI SECOM Dataset</span>
-                        <p class="text-slate-500 text-[10px] leading-relaxed">실제 반도체 제조 공정 센서 로그 및 품질 테스트 매핑 데이터</p>
+                <div class="space-y-4 text-xs">
+                    <!-- 1. 챔버 선택 -->
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-bold block mb-1.5">측정 대상 챔버 (Chamber Select)</label>
+                        <select id="chamber-select" class="w-full bg-slate-950 text-slate-200 border border-slate-800 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-blue-500">
+                            <option value="Chamber_A">FAB 3 - Chamber A (정상 공정 중심)</option>
+                            <option value="Chamber_B">FAB 3 - Chamber B (가혹 조건 운용)</option>
+                            <option value="Chamber_C">FAB 3 - Chamber C (센서 장기 마모 노이즈)</option>
+                        </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-center font-mono">
-                        <div class="bg-slate-950 p-2 rounded border border-slate-850">
-                            <span class="text-[9px] text-slate-500 block">수집 샘플</span>
-                            <span class="text-xs font-bold text-slate-300">1,567 pcs</span>
+                    
+                    <!-- 2. 임계값(Threshold) 슬라이더 -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-[10px] text-slate-400 font-bold">의사결정 임계값 (Threshold)</label>
+                            <span id="threshold-val" class="font-mono text-blue-400 font-bold text-xs">0.50</span>
                         </div>
-                        <div class="bg-slate-950 p-2 rounded border border-slate-850">
-                            <span class="text-[9px] text-slate-500 block">센서 인자</span>
-                            <span class="text-xs font-bold text-slate-300">590 수치형</span>
-                        </div>
+                        <input id="threshold-slider" type="range" min="0.1" max="0.9" step="0.05" value="0.50" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        <p class="text-[9px] text-slate-500 mt-1">임계값이 낮아질수록 이상 탐지 빈도와 민감도가 늘어납니다.</p>
                     </div>
+
+                    <!-- 3. 계측 스캔 가동 토글 -->
+                    <div class="pt-2">
+                        <button id="stream-toggle-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-xs transition-colors flex items-center justify-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-white inline-block animate-ping"></span>
+                            실시간 공정 스캔 시작
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 실시간 시스템 로그 모니터 -->
+            <div class="bg-slate-900 rounded-xl p-5 border border-slate-800 shadow-sm">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                    <h2 class="font-bold text-slate-200 text-xs">실시간 시스템 로그</h2>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                </div>
+                <div id="log-terminal" class="bg-slate-950 p-3 rounded-lg border border-slate-850 font-mono text-[9px] text-emerald-400 h-36 overflow-y-auto custom-scrollbar space-y-1.5">
+                    <p class="text-slate-500">[SYSTEM] 대시보드 시스템 초기화 완료</p>
+                    <p class="text-slate-500">[SYSTEM] 챔버 원격 신호 바인딩 대기중</p>
                 </div>
             </div>
         </div>
 
-        <!-- 오른쪽 열: 05, 07, 08 핵심 분석 모듈 및 산점도 시각화 -->
+        <!-- 오른쪽 열: 핵심 분석 모듈 및 산점도 시각화 -->
         <div class="lg:col-span-9 flex flex-col gap-6">
             
-            <!-- 상단: 05(EDA) 및 07(모델 성능 비교 테이블) 배치 -->
+            <!-- 상단: 생산 품목 분포 비율 및 모델 성능 비교 테이블 -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <!-- 05. EDA (타겟 불량 불균형 비율 분포) -->
+                <!-- 생산 품목 분포 비율 (EDA) -->
                 <div class="bg-slate-900 rounded-xl p-5 border border-slate-800 md:col-span-4 flex flex-col justify-between">
                     <div class="flex items-center gap-2 border-b border-slate-800 pb-2 mb-3">
-                        <span class="bg-slate-800 text-blue-400 text-xs px-2 py-0.5 rounded font-mono">05</span>
                         <h3 class="text-xs font-bold text-slate-200">생산 품목 분포 비율 (EDA)</h3>
                     </div>
                     <div class="h-44 w-full flex items-center justify-center relative">
                         <canvas id="edaRatioChart"></canvas>
                     </div>
                     <p class="text-[10px] text-slate-500 text-center mt-2">
-                        비대칭 데이터 모델링(Pass 85.3% / Fail 14.7%) 처리 필요
+                        비대칭 데이터 모델링 처리 기준 분포도
                     </p>
                 </div>
 
-                <!-- 07. 모델 평가 성능 벤치마크 -->
+                <!-- 기계학습 알고리즘 성능 벤치마크 -->
                 <div class="bg-slate-900 rounded-xl p-5 border border-slate-800 md:col-span-8">
                     <div class="flex items-center gap-2 border-b border-slate-800 pb-2 mb-4">
-                        <span class="bg-slate-800 text-blue-400 text-xs px-2 py-0.5 rounded font-mono">07</span>
                         <h3 class="text-xs font-bold text-slate-200">기계학습 알고리즘 성능 벤치마크</h3>
                     </div>
                     <div class="overflow-x-auto custom-scrollbar">
@@ -205,12 +234,12 @@
                                 <tr class="bg-blue-950/30 text-blue-300 font-semibold border-y border-blue-900/50">
                                     <td class="py-2.5 flex items-center gap-1.5">
                                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block animate-ping"></span>
-                                        XGBoost (Selected)
+                                        XGBoost (시뮬레이션 연동)
                                     </td>
-                                    <td>0.947</td>
-                                    <td class="font-bold text-blue-400">0.931</td>
-                                    <td>0.892</td>
-                                    <td class="font-bold text-blue-400">0.911</td>
+                                    <td id="table-acc" class="transition-all duration-150">0.947</td>
+                                    <td id="table-prec" class="font-bold text-blue-400 transition-all duration-150">0.931</td>
+                                    <td id="table-rec" class="transition-all duration-150">0.892</td>
+                                    <td id="table-f1" class="font-bold text-blue-400 transition-all duration-150">0.911</td>
                                 </tr>
                                 <tr class="hover:bg-slate-950/40 text-slate-500">
                                     <td class="py-2.5">Isolation Forest (이상탐지)</td>
@@ -218,18 +247,21 @@
                                     <td>-</td>
                                     <td>-</td>
                                     <td>-</td>
-                                end
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 하단: 08(결과 시각화 - 피처 중요도, 혼동 행렬 및 **산점도**) -->
-            <div class="bg-slate-900 rounded-xl p-5 border border-slate-800">
-                <div class="flex items-center gap-2 border-b border-slate-800 pb-3 mb-5">
-                    <span class="bg-slate-800 text-blue-400 text-xs px-2 py-0.5 rounded font-mono">08</span>
+            <!-- 하단: 결과 시각화 - 피처 중요도, 혼동 행렬 및 산점도 인터랙션 통합 제어반 -->
+            <div id="visualization-container" class="bg-slate-900 rounded-xl p-5 border border-slate-800 transition-all duration-300">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-5">
                     <h3 class="text-xs font-bold text-slate-200">공정 품질 예측 분석 결과 시각화</h3>
+                    <div id="alert-pulse-container" class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" id="status-indicator"></span>
+                        <span id="status-text">이상 분포 탐지 구역 정상</span>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -238,8 +270,8 @@
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-[11px] font-bold text-slate-300">PCA 차원 축소 공정 이상 분포 산점도</span>
                             <div class="flex gap-2 text-[9px]">
-                                <span class="flex items-center gap-1 text-blue-400">● 정상</span>
-                                <span class="flex items-center gap-1 text-red-500">● 이상</span>
+                                <span class="flex items-center gap-1 text-blue-400">● 예측 정상</span>
+                                <span class="flex items-center gap-1 text-red-500">● 예측 이상</span>
                             </div>
                         </div>
                         <div class="h-60 w-full">
@@ -253,34 +285,34 @@
                         <div class="h-48 w-full">
                             <canvas id="featureImportanceChart"></canvas>
                         </div>
-                        <p class="text-[9px] text-slate-500 text-center mt-2 leading-relaxed">
+                        <p id="feature-desc" class="text-[9px] text-slate-500 text-center mt-2 leading-relaxed">
                             에칭 공정 가스 제어 센서 V_098 영향 지배적임
                         </p>
                     </div>
 
-                    <!-- 3. 혼동 행렬 (Confusion Matrix) 시뮬레이션 인터페이스 -->
+                    <!-- 3. 예측 오차 구조 (Confusion Matrix) -->
                     <div class="lg:col-span-3 bg-slate-950 p-4 rounded-lg border border-slate-850 flex flex-col justify-between">
                         <span class="text-[11px] font-bold text-slate-300 mb-3 block">예측 오차 구조 (Confusion Matrix)</span>
                         <div class="grid grid-cols-2 gap-1.5 text-center text-[10px] font-mono">
-                            <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                            <div class="bg-slate-900 p-2 rounded border border-slate-800 transition-all duration-150">
                                 <span class="text-slate-500 block text-[8px]">정상 판정 (TN)</span>
-                                <span class="text-sm font-bold text-slate-300">1,312 건</span>
+                                <span id="matrix-tn" class="text-sm font-bold text-slate-300">1,312 건</span>
                             </div>
-                            <div class="bg-red-950/20 p-2 rounded border border-red-950/50">
+                            <div class="bg-red-950/20 p-2 rounded border border-red-950/50 transition-all duration-150">
                                 <span class="text-red-400 block text-[8px]">미탐지 불량 (FN)</span>
-                                <span class="text-sm font-bold text-red-500">86 건</span>
+                                <span id="matrix-fn" class="text-sm font-bold text-red-500">86 건</span>
                             </div>
-                            <div class="bg-yellow-950/20 p-2 rounded border border-yellow-950/50">
+                            <div class="bg-yellow-950/20 p-2 rounded border border-yellow-950/50 transition-all duration-150">
                                 <span class="text-yellow-500 block text-[8px]">과탐지 정상 (FP)</span>
-                                <span class="text-sm font-bold text-yellow-400">68 건</span>
+                                <span id="matrix-fp" class="text-sm font-bold text-yellow-400">68 건</span>
                             </div>
-                            <div class="bg-emerald-950/20 p-2 rounded border border-emerald-950/50">
+                            <div class="bg-emerald-950/20 p-2 rounded border border-emerald-950/50 transition-all duration-150">
                                 <span class="text-emerald-400 block text-[8px]">불량 예측 (TP)</span>
-                                <span class="text-sm font-bold text-emerald-400">101 건</span>
+                                <span id="matrix-tp" class="text-sm font-bold text-emerald-400">101 건</span>
                             </div>
                         </div>
                         <div class="bg-slate-900 p-2 rounded text-[9px] text-slate-400 mt-3 leading-relaxed border border-slate-800">
-                            <strong>해석:</strong> 장비 미가동 유휴 로스를 최적화하기 위해 재현율(Recall: 89.2%) 강화 모델 적용 완료했음
+                            <strong>실시간 시뮬레이션 모델 튜닝:</strong> 챔버 변경 및 의사결정 임계치 슬라이더 조정 시 산점도와 혼동행렬 연산값이 실시간으로 동기화되어 가시화됨
                         </div>
                     </div>
                 </div>
@@ -293,130 +325,392 @@
         <p>© 2026 Process AI Team · WISET Semiconductor Process Control Deep dive</p>
     </footer>
 
-    <!-- Chart.js 실행 스크립트 -->
+    <!-- Chart.js 실행 및 동적 연산 인터랙션 로직 -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // 1. EDA 파이 차트 정의
-            const edaCtx = document.getElementById('edaRatioChart').getContext('2d');
-            new Chart(edaCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['정상 (Pass)', '불량 (Fail)'],
-                    datasets: [{
-                        data: [85.3, 14.7],
-                        backgroundColor: ['#2563eb', '#ef4444'],
-                        borderWidth: 1,
-                        borderColor: '#0f172a'
-                    }]
+            // 전역 시뮬레이션 상태 변수
+            let currentChamber = "Chamber_A";
+            let currentThreshold = 0.50;
+            let liveScanning = false;
+            let scanInterval = null;
+
+            // 차트 인스턴스 저장소
+            let edaChartInstance = null;
+            let barChartInstance = null;
+            let scatterChartInstance = null;
+
+            // 챔버별 시뮬레이션 시드 데이터 명세
+            const chamberData = {
+                Chamber_A: {
+                    passRatio: 88.2,
+                    failRatio: 11.8,
+                    featureScores: [0.155, 0.118, 0.088, 0.062, 0.041],
+                    featureLabels: ['V_098 (MFC)', 'V_284 (RF)', 'V_045 (Temp)', 'V_512 (Press)', 'V_103 (Gas)'],
+                    desc: "에칭 공정 가스 제어 센서 V_098 영향 지배적임",
+                    baseScatterSize: 100,
+                    outlierFactor: 1.2
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 10,
-                                font: { size: 9 },
-                                color: '#94a3b8'
+                Chamber_B: {
+                    passRatio: 78.5,
+                    failRatio: 21.5,
+                    featureScores: [0.198, 0.145, 0.112, 0.051, 0.033],
+                    featureLabels: ['V_284 (RF)', 'V_098 (MFC)', 'V_045 (Temp)', 'V_122 (Volt)', 'V_512 (Press)'],
+                    desc: "RF 파워 제어 인자 V_284가 공정 품질 저하 핵심 요인으로 분석됨",
+                    baseScatterSize: 100,
+                    outlierFactor: 2.2
+                },
+                Chamber_C: {
+                    passRatio: 82.1,
+                    failRatio: 17.9,
+                    featureScores: [0.162, 0.131, 0.101, 0.082, 0.055],
+                    featureLabels: ['V_045 (Temp)', 'V_512 (Press)', 'V_098 (MFC)', 'V_331 (Pump)', 'V_284 (RF)'],
+                    desc: "챔버 내 벽면 장기 마모로 인한 온도 전이 센서 V_045 피드백 과잉 발생중",
+                    baseScatterSize: 100,
+                    outlierFactor: 1.7
+                }
+            };
+
+            // 가상 산점도 점 군집 생성용 데이터 풀
+            let currentPointsPool = [];
+
+            // 실시간 로그 터미널에 메시지 추가 함수
+            function addLogMessage(message, type = "info") {
+                const terminal = document.getElementById('log-terminal');
+                const now = new Date();
+                const timeStr = now.toTimeString().split(' ')[0];
+                const p = document.createElement('p');
+                
+                if (type === "warning") {
+                    p.className = "text-red-400 font-bold";
+                    p.innerText = `[WARN] ${timeStr} ${message}`;
+                } else if (type === "success") {
+                    p.className = "text-emerald-400";
+                    p.innerText = `[SUCCESS] ${timeStr} ${message}`;
+                } else {
+                    p.className = "text-slate-400";
+                    p.innerText = `[INFO] ${timeStr} ${message}`;
+                }
+                
+                terminal.appendChild(p);
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+
+            // 1. EDA 도넛 차트 초기화 및 업데이트 함수 (Destroy 후 재생성 시 기본 애니메이션 보존)
+            function updateEdaChart(chamber) {
+                const data = chamberData[chamber];
+                const ctx = document.getElementById('edaRatioChart').getContext('2d');
+                
+                if (edaChartInstance) {
+                    edaChartInstance.destroy();
+                }
+
+                edaChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['정상 (Pass)', '불량 (Fail)'],
+                        datasets: [{
+                            data: [data.passRatio, data.failRatio],
+                            backgroundColor: ['#2563eb', '#ef4444'],
+                            borderWidth: 1,
+                            borderColor: '#0f172a'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 10,
+                                    font: { size: 9 },
+                                    color: '#94a3b8'
+                                }
+                            }
+                        },
+                        cutout: '75%'
+                    }
+                });
+            }
+
+            // 2. 피처 중요도 가로 바 차트 초기화 및 업데이트 함수 (부드러운 스크롤 트랜지션 적용)
+            function updateBarChart(chamber) {
+                const data = chamberData[chamber];
+                const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+                
+                if (barChartInstance) {
+                    barChartInstance.destroy();
+                }
+
+                document.getElementById('feature-desc').innerText = data.desc;
+
+                barChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.featureLabels,
+                        datasets: [{
+                            data: data.featureScores,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 3
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1200,
+                            easing: 'easeOutQuart'
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { size: 8 }, color: '#64748b' }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { font: { size: 8 }, color: '#94a3b8' }
                             }
                         }
-                    },
-                    cutout: '75%'
-                }
-            });
-
-            // 2. 가로 바 차트 (Feature Importance)
-            const barCtx = document.getElementById('featureImportanceChart').getContext('2d');
-            new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['V_098', 'V_284', 'V_045', 'V_512', 'V_103'],
-                    datasets: [{
-                        data: [0.145, 0.122, 0.098, 0.075, 0.052],
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { font: { size: 8 }, color: '#64748b' }
-                        },
-                        y: {
-                            grid: { display: false },
-                            ticks: { font: { size: 8 }, color: '#94a3b8' }
-                        }
                     }
-                }
-            });
-
-            // 3. 차원축소 결과 2D 산점도 (Scatter Plot) 시뮬레이션
-            const scatterCtx = document.getElementById('pcaScatterChart').getContext('2d');
-            
-            // 정상 샘플 군집 데이터 생성
-            const normalPoints = [];
-            for (let i = 0; i < 45; i++) {
-                normalPoints.push({
-                    x: (Math.random() - 0.5) * 3 + 1,
-                    y: (Math.random() - 0.5) * 3 + 1
                 });
             }
 
-            // 이상 샘플 군집 데이터 생성 (멀리 분산되어 튀는 형태)
-            const anomalyPoints = [];
-            for (let i = 0; i < 15; i++) {
-                anomalyPoints.push({
-                    x: (Math.random() - 0.5) * 6 + (Math.random() > 0.5 ? 5 : -5),
-                    y: (Math.random() - 0.5) * 6 + (Math.random() > 0.5 ? 5 : -5)
-                });
+            // 3. 고정 풀 생성 및 산점도 물리 기반 연산 함수
+            function generatePointsPool(chamber) {
+                const info = chamberData[chamber];
+                currentPointsPool = [];
+
+                // 실제 Ground Truth 상 정상으로 라벨링될 데이터 (원점 중심 밀집 구조)
+                for (let i = 0; i < 70; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    // 가우시안 분포 형태로 원점 분산 유도
+                    const r = (Math.random() + Math.random()) * 1.0; 
+                    currentPointsPool.push({
+                        x: Math.cos(angle) * r,
+                        y: Math.sin(angle) * r,
+                        groundTruth: 'Pass', // 실제 정상 제품
+                        r_dist: r
+                    });
+                }
+
+                // 실제 Ground Truth 상 불량으로 라벨링될 데이터 (원점에서 멀리 튀는 구조)
+                const targetAnomalies = Math.round(30 * info.outlierFactor);
+                for (let i = 0; i < targetAnomalies; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const r = 2.0 + Math.random() * 3.5;
+                    currentPointsPool.push({
+                        x: Math.cos(angle) * r,
+                        y: Math.sin(angle) * r,
+                        groundTruth: 'Fail', // 실제 결함 제품
+                        r_dist: r
+                    });
+                }
             }
 
-            new Chart(scatterCtx, {
-                type: 'scatter',
-                data: {
-                    datasets: [
-                        {
-                            label: '정상 판정군',
-                            data: normalPoints,
-                            backgroundColor: '#3b82f6',
-                            pointRadius: 4,
-                            hoverRadius: 6
-                        },
-                        {
-                            label: '공정 이상 탐지군',
-                            data: anomalyPoints,
-                            backgroundColor: '#ef4444',
-                            pointRadius: 5,
-                            hoverRadius: 7
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: '#1e293b' },
-                            ticks: { font: { size: 8 }, color: '#64748b' }
-                        },
-                        y: {
-                            grid: { color: '#1e293b' },
-                            ticks: { font: { size: 8 }, color: '#64748b' }
-                        }
+            // 4. 임계치 슬라이더 및 챔버에 연동된 산점도 드로잉 및 평가지표 연동식 알고리즘
+            // (핵심 개선: 차트를 매번 destroy하지 않고 datasets 레퍼런스 업데이트를 통해 자연스러운 Glide Motion 이식)
+            function evaluateAndRenderScatter() {
+                const decisionRadius = 4.5 * (1.0 - currentThreshold) + 0.5;
+
+                let tp = 0; // 실제 불량을 불량으로 예측
+                let fn = 0; // 실제 불량을 정상으로 예측 (미탐지)
+                let fp = 0; // 실제 정상을 불량으로 예측 (과탐지)
+                let tn = 0; // 실제 정상을 정상으로 예측
+
+                const predictedPassData = [];
+                const predictedFailData = [];
+
+                currentPointsPool.forEach(pt => {
+                    const isPredictedAnomaly = pt.r_dist > decisionRadius;
+
+                    if (isPredictedAnomaly) {
+                        predictedFailData.push({ x: pt.x, y: pt.y });
+                        if (pt.groundTruth === 'Fail') tp++;
+                        else fp++;
+                    } else {
+                        predictedPassData.push({ x: pt.x, y: pt.y });
+                        if (pt.groundTruth === 'Pass') tn++;
+                        else fn++;
                     }
+                });
+
+                // 혼동행렬 실시간 지표 갱신
+                document.getElementById('matrix-tn').innerText = `${tn} 건`;
+                document.getElementById('matrix-fn').innerText = `${fn} 건`;
+                document.getElementById('matrix-fp').innerText = `${fp} 건`;
+                document.getElementById('matrix-tp').innerText = `${tp} 건`;
+
+                // 분류 평가 매트릭 계산
+                const total = tp + fn + fp + tn;
+                const accuracy = (tp + tn) / total;
+                const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
+                const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+                const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
+
+                // 대시보드 메인 벤치마크 테이블 내 실시간 연동
+                document.getElementById('table-acc').innerText = accuracy.toFixed(3);
+                document.getElementById('table-prec').innerText = precision.toFixed(3);
+                document.getElementById('table-rec').innerText = recall.toFixed(3);
+                document.getElementById('table-f1').innerText = f1.toFixed(3);
+
+                // 상단 KPI 갱신식 매핑
+                const computedYield = (tn / total * 100).toFixed(1);
+                const computedFailRate = (tp / total * 100).toFixed(1);
+                document.getElementById('kpi-yield').innerText = `${computedYield}%`;
+                document.getElementById('kpi-fail-rate').innerText = `${computedFailRate}% (Fail 감지)`;
+
+                // 실시간 이상 임계 경고 상황 시 UI 경보 발령 인터랙션
+                const visualizationContainer = document.getElementById('visualization-container');
+                const statusIndicator = document.getElementById('status-indicator');
+                const statusText = document.getElementById('status-text');
+                const systemStatusBadge = document.getElementById('system-status-badge');
+
+                if (fn > 15) { // 미탐지(놓친 불량)가 위험 수위로 올라가면 경고
+                    visualizationContainer.classList.add('border-red-500/50', 'animate-alert');
+                    statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-red-500 inline-block";
+                    statusText.innerText = "이상 탐지 비상 (미탐지 불량 경고)";
+                    systemStatusBadge.className = "text-xs bg-red-950/80 text-red-400 px-3 py-1.5 rounded border border-red-800/80 font-mono animate-pulse";
+                    systemStatusBadge.innerText = "System: Critical/Failure Detected";
+                } else {
+                    visualizationContainer.classList.remove('border-red-500/50', 'animate-alert');
+                    statusIndicator.className = "w-2.5 h-2.5 rounded-full bg-blue-500 inline-block";
+                    statusText.innerText = "이상 분포 탐지 구역 정상";
+                    systemStatusBadge.className = "text-xs bg-emerald-950/80 text-emerald-400 px-3 py-1.5 rounded border border-emerald-800/80 font-mono";
+                    systemStatusBadge.innerText = "System: Secure/Normal";
+                }
+
+                // Scatter Chart 업데이트 로직 최적화 (인스턴스가 있으면 데이터만 갈아끼우고 .update() 하여 부드러운 글라이딩 효과 발생)
+                if (scatterChartInstance) {
+                    scatterChartInstance.data.datasets[0].data = predictedPassData;
+                    scatterChartInstance.data.datasets[1].data = predictedFailData;
+                    // 'active' 트랜지션 모드로 업데이트 하여 물리 좌표 추적 애니메이션 활성화
+                    scatterChartInstance.update('active');
+                } else {
+                    const ctx = document.getElementById('pcaScatterChart').getContext('2d');
+                    scatterChartInstance = new Chart(ctx, {
+                        type: 'scatter',
+                        data: {
+                            datasets: [
+                                {
+                                    label: '예측 정상 판정군',
+                                    data: predictedPassData,
+                                    backgroundColor: '#3b82f6',
+                                    pointRadius: 4,
+                                    hoverRadius: 6
+                                },
+                                {
+                                    label: '예측 이상 탐지군',
+                                    data: predictedFailData,
+                                    backgroundColor: '#ef4444',
+                                    pointRadius: 5,
+                                    hoverRadius: 7
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            transitions: {
+                                active: {
+                                    animation: {
+                                        duration: 600, // 글라이딩 트랜지션 타임
+                                        easing: 'easeOutCubic'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: '#1e293b' },
+                                    ticks: { font: { size: 8 }, color: '#64748b' },
+                                    min: -6,
+                                    max: 6
+                                },
+                                y: {
+                                    grid: { color: '#1e293b' },
+                                    ticks: { font: { size: 8 }, color: '#64748b' },
+                                    min: -6,
+                                    max: 6
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // 슬라이더 및 드롭다운 컨트롤 이벤트 바인딩
+            document.getElementById('chamber-select').addEventListener('change', function(e) {
+                currentChamber = e.target.value;
+                addLogMessage(`측정 대상을 ${currentChamber}로 전환했음`);
+                updateEdaChart(currentChamber);
+                updateBarChart(currentChamber);
+                generatePointsPool(currentChamber);
+                evaluateAndRenderScatter();
+            });
+
+            const thresholdSlider = document.getElementById('threshold-slider');
+            const thresholdValue = document.getElementById('threshold-val');
+
+            thresholdSlider.addEventListener('input', function(e) {
+                currentThreshold = parseFloat(e.target.value);
+                thresholdValue.innerText = currentThreshold.toFixed(2);
+                evaluateAndRenderScatter();
+            });
+
+            // 실시간 모니터링 라이브 스트림 가동 토글 인터랙션
+            const streamBtn = document.getElementById('stream-toggle-btn');
+            streamBtn.addEventListener('click', function() {
+                liveScanning = !liveScanning;
+                if (liveScanning) {
+                    addLogMessage("실시간 고속 챔버 스크리닝 시퀀스 작동을 개시했음", "success");
+                    streamBtn.innerText = "실시간 공정 스캔 중지";
+                    streamBtn.className = "w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded text-xs transition-colors flex items-center justify-center gap-2";
+                    
+                    scanInterval = setInterval(() => {
+                        // 기존 포인트 풀의 요소들을 미세하게 요동치게 만들어 대시보드가 살아있는 듯이 만듦
+                        currentPointsPool.forEach(pt => {
+                            pt.x += (Math.random() - 0.5) * 0.25;
+                            pt.y += (Math.random() - 0.5) * 0.25;
+                            pt.r_dist = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
+                        });
+                        
+                        // 주기적 시스템 로그 시뮬레이션
+                        const isHighRisk = (Math.random() > 0.8);
+                        if (isHighRisk) {
+                            addLogMessage("장비 압력 챔버 내부 온도 오실레이션 미세 변동 발생", "warning");
+                        } else {
+                            addLogMessage("공정 센서 V_098, V_284 수집 주기 고속 로드 완료");
+                        }
+
+                        // 실시간 타임스탬프 갱신
+                        const now = new Date();
+                        document.getElementById('live-time').innerText = now.toISOString().replace('T', ' ').substring(0, 19);
+
+                        evaluateAndRenderScatter();
+                    }, 1000);
+                } else {
+                    addLogMessage("실시간 챔버 스크리닝을 안전하게 일시 중지했음");
+                    streamBtn.innerText = "실시간 공정 스캔 시작";
+                    streamBtn.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-xs transition-colors flex items-center justify-center gap-2";
+                    clearInterval(scanInterval);
                 }
             });
+
+            // 최저 구동 이닛 프로세스 시작
+            updateEdaChart(currentChamber);
+            updateBarChart(currentChamber);
+            generatePointsPool(currentChamber);
+            evaluateAndRenderScatter();
         });
     </script>
 </body>
